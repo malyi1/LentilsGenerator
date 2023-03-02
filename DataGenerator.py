@@ -1,458 +1,162 @@
-import math
-import numpy as np
 import PointFactory
 import PicFactory
-from matplotlib import pyplot as plt
 
 
 class DataGenerator:
-    # These fields are used for some types of noise application
-    minRangeX = 0
-    maxRangeX = 0
-    minRangeY = 0
-    maxRangeY = 0
-    pixel = 0.27 # mm
 
-
+    # string export
+    # first row = point count then points coordinates in format [x y] follows
     @staticmethod
-    def generateRandomPoints(canvasWidth, canvasHeight, n):
-        print("Generating random points...")
-        # width and height are size of canvas, we will generate points only in one half of X axes
-        width = int(canvasWidth / 2)
-        height = int(canvasHeight)
-        ptList = []
-        radius = 10 * pixel
-        # pro zlaty rez: potreba 2/3 --> pulku tretiny od krajů
-        # zlatawidth = width /6
-        # zlataheight = height/6
-
-        # pridam prvni bod
-        ptList.append(DataGenerator.randPoint(0, 0, width, height))
-
-        for i in range(n-1):
-
-            isClose = True
-
-            while isClose:
-
-                point = DataGenerator.randPoint(0, 0, width, height)
-
-                for pt in ptList:
-
-                    distance = math.sqrt((point.X - pt.X) * (point.X - pt.X) + (point.Y - pt.Y) * (point.Y - pt.Y))
-                    isClose = distance <= radius
-
-                    if isClose:
-                        break
-
-            ptList.append(point)
-
-        return ptList
-
-    @staticmethod
-    def addRandomPoints(canvasWidth, canvasHeight, n, point_list):
-        print("Generating random points...")
-        # width and height are size of canvas, we will generate points only in one half of X axes
-        width = int(canvasWidth / 2)
-        height = int(canvasHeight)
-        ptList = point_list
-        radius = 10 * pixel
-
-        for i in range(n):
-            isClose = True
-            while isClose:
-                new_point = DataGenerator.randPoint(0, 0, width, height)
-                for pt in ptList:
-                    distance = math.sqrt((new_point.X - pt.X) * (new_point.X - pt.X) + (new_point.Y - pt.Y) * (new_point.Y - pt.Y))
-                    isClose = distance <= radius
-                    if isClose:
-                        break
-
-            ptList.append(new_point)
-
-        return ptList
-
-    @staticmethod
-    def randPoint(startX, startY, endX, endY):
-        x = np.random.uniform(low=startX, high=endX, size=1)
-        y = np.random.uniform(low=startY, high=endY, size=1)
-        new_point = Point(x[0], y[0])
-        return new_point
-
-    @staticmethod
-    def shiftX(points, width, maxShift, shiftPercentage=1):
-        # posunu body na ose x o rand kousek, nesmí přesáhnout osu symetrie !
-        #  prozatím posouvám min o 5px a max o 1/4 šířky, v momentě, kdy jsem za 1/4 a přičetla bych čtvrtinu
-        #  dostanu se přes osu symetrie -> nebudu odečítat,ale přičítat
-        # to samé nutno dodělat na opačnou stranu (když bych šla do mínusu
-        #  -> dořešíme v závislosti na velikosti plátna
-        axis = width / 2
-        shiftPoints = []
-
-        # pouze určité procento bodů bude posunuto
-        sh_points = int(len(points) * shiftPercentage)
-        counter = len(points)
-        # delitel = counter / sh_points
-        count = 0
-        for p in points:
-            if counter <= sh_points:
-                # maxshift udává pás šířky, o ktrerý max můžer být proveden posun na ose x (v jedné polovině)
-                randPosun = np.random.uniform(low=5*pixel, high=width/2 * maxShift, size=1)
-                count += 1
-                # random shift direction - 0 - 0.5 posun vlevo na x; > 0.5 doprava na x
-                dir = np.random.rand(1)
-
-                if dir > 0.5:
-                    newX = p.X + randPosun[0]
-                    # Přičítám randNr -> hrozí, že přejdu přes osu symetrie
-                    # to, o co přelezu axis, tak o tolik to od axis posunu zpět na správnou půlku
-
-                    if newX >= axis:
-                        rozdil = axis - newX
-                        newX = axis - abs(rozdil)
-                else:
-                    newX = p.X - randPosun[0]
-                    # Odečítám randNr -> hrozí, že přejdu do mínusu (mimo plátno)
-                    if newX <= 0:
-                        rozdil = 0 - newX
-                        newX = rozdil
-
-                shiftPoint = Point(newX, p.Y)
-                #TODO přidat kontrolu, že se posunutý bod nepřekrývá
-                shiftPoints.append(shiftPoint)
-            # pokud bod nemá být posunut, přidej původní
-            else:
-                shiftPoints.append(p)
-
-                # points.append(p)
-                # points.append(symetricPoint)
-            counter -= 1
-        print("Count of shifted points: " + str(count))
-        return shiftPoints
-
-    @staticmethod
-    def generateSymetricPoints(points, width):
-        print("Generating symetric points...")
-        # překlopím body v ose x
-        symetricPts = []
-        # points = []
-        for p in points:
-            sym = width / 2 - p.X
-            symetricPoint = Point(width / 2 + sym, p.Y)
-            symetricPts.append(symetricPoint)
-            # points.append(p)
-            # points.append(symetricPoint)
-        return symetricPts
-
-
-
-    def startSymetricPoints(width, height, n,  listOfPoints, symetricPoints, shiftX=False, shiftY=False, changeSize=0, pointSize=0, addPoints=False,removePoints=False, nrOfSets=0):
-
-        f = plt.figure(figsize=(100*pixel/25.4, 100*pixel/25.4), dpi=100)  # muj monitor
-
-        # pouze pomucka pro ziskani vzdy celeho platna pro pripad ze by data byly vygenerovany jen u osy - platno by se podle toho zmensilo
-        plt.plot(0, 0, marker="o", markersize=10, markeredgecolor="white", markerfacecolor="white")
-        plt.plot(width, height, marker="o", markersize=10, markeredgecolor="white", markerfacecolor="white")
-
-        ax = plt.gca()
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-        ax.axis('off')
-
-        print("Plotting points...")
-        for pt in listOfPoints:
-            plt.plot(pt.X, pt.Y, marker="o", markersize=pointSize, markeredgecolor="black", markerfacecolor="black")
-            # i = int(pt.X)
-            # j = int(pt.Y)
-            # plt.text(pt.X, pt.Y + 0.05, "({}, {})".format(i, j))
-
-
-        print("-- Plotting symetric Points...")
-        for pt in symetricPoints:
-
-            plt.plot(pt.X, pt.Y, marker="o", markersize=pointSize, markeredgecolor="black", markerfacecolor="black")
-
-
-        print("-- Plotting symetric Points DONE...")
-
-        # plt.savefig(fname="A4_300_5.pdf", orientation='landscape',format='pdf', edgecolor="none")
-        name = "img/100px/set" +str(nrOfSets) +" " + str(n) + "x10px_100px"+".png"
-        plt.savefig(fname=name, orientation='landscape', format='png', edgecolor="none")
-        plt.clf()  # clear figure after saving png
-
-        if shiftX:
-            # posunuti puvodnich bodu
-            shifter = 0.1
-            for i in range(4):
-                # pouze pomucka pro ziskani vzdy celeho platna pro pripad ze by data byly vygenerovany jen u osy - platno by se podle toho zmensilo
-                plt.plot(0, 0, marker="o", markersize=10, markeredgecolor="white", markerfacecolor="white")
-                plt.plot(width, height, marker="o", markersize=10, markeredgecolor="white", markerfacecolor="white")
-
-                ax = plt.gca()
-                ax.get_xaxis().set_visible(False)
-                ax.get_yaxis().set_visible(False)
-                ax.axis('off')
-
-
-                print("___ Shifting symetric points in X axe")
-                shiftPts = DataGenerator.shiftX(listOfPoints, width=width, maxShift=0.2, shiftPercentage=shifter)
-                print("___ Shifting symetric points in X axe Done")
-
-                for pt in symetricPoints :
-                    plt.plot(pt.X, pt.Y, marker="o", markersize=pointSize, markeredgecolor="black", markerfacecolor="black")
-
-                for pt in shiftPts:
-                    plt.plot(pt.X, pt.Y, marker="o", markersize=pointSize, markeredgecolor="black", markerfacecolor="black")
-                for pt in listOfPoints:
-                    plt.plot(pt.X, pt.Y, marker="o", markersize=pointSize, markeredgecolor="black", markerfacecolor="black")
-
-                name = "img/100px/set" +str(nrOfSets) + " shiftX=" + str(shifter)  + ".png"
-                plt.savefig(fname=name, orientation='landscape', format='png', edgecolor="none")
-                plt.clf()  # clear figure after saving png
-                shifter += 0.1
-
-        if removePoints:
-            remover = 0.1
-
-            for i in range(4):
-                counter = len(listOfPoints)
-                # pouze pomucka pro ziskani vzdy celeho platna pro pripad ze by data byly vygenerovany jen u osy - platno by se podle toho zmensilo
-                plt.plot(0, 0, marker="o", markersize=10, markeredgecolor="white", markerfacecolor="white")
-                plt.plot(width, height, marker="o", markersize=10, markeredgecolor="white", markerfacecolor="white")
-
-                ax = plt.gca()
-                ax.get_xaxis().set_visible(False)
-                ax.get_yaxis().set_visible(False)
-                ax.axis('off')
-
-                for pt in symetricPoints :
-                    plt.plot(pt.X, pt.Y, marker="o", markersize=pointSize, markeredgecolor="black", markerfacecolor="black")
-
-                rem_points = int(counter * remover)
-                # delitel = counter / rem_points
-                count = 0
-                print("@ Removing points " + str(remover))
-                for pt in listOfPoints:
-                    if counter <= rem_points:
-                        count += 1
-                    else:
-                        plt.plot(pt.X, pt.Y, marker="o", markersize=pointSize, markeredgecolor="black", markerfacecolor="black")
-                    counter -= 1
-
-                print("   Removed:" + str(count) + " points ")
-
-                name = "img/100px/set" +str(nrOfSets) + " removed=" + str(remover) +".png"
-                plt.savefig(fname=name, orientation='landscape', format='png', edgecolor="none")
-                plt.clf()  # clear figure after saving png
-                remover += 0.1
-
-        if addPoints:
-            adder = 0.1
-            counter = len(listOfPoints)
-            for i in range(4):
-                add_points = int(counter * adder)
-                addedPoints = DataGenerator.addRandomPoints(canvasWidth=width, canvasHeight=height, n=add_points, point_list=listOfPoints)
-
-                # pouze pomucka pro ziskani vzdy celeho platna pro pripad ze by data byly vygenerovany jen u osy - platno by se podle toho zmensilo
-                plt.plot(0, 0, marker="o", markersize=10, markeredgecolor="white", markerfacecolor="white")
-                plt.plot(width, height, marker="o", markersize=10, markeredgecolor="white", markerfacecolor="white")
-
-                ax = plt.gca()
-                ax.get_xaxis().set_visible(False)
-                ax.get_yaxis().set_visible(False)
-                ax.axis('off')
-
-                for pt in symetricPoints:
-                    plt.plot(pt.X, pt.Y, marker="o", markersize=pointSize, markeredgecolor="black",
-                             markerfacecolor="black")
-
-                for pt in addedPoints:
-                    plt.plot(pt.X, pt.Y, marker="o", markersize=pointSize, markeredgecolor="black",
-                             markerfacecolor="black")
-
-
-                name = "img/100px/set" + str(nrOfSets) + " added=" + str(adder) + ".png"
-                plt.savefig(fname=name, orientation='landscape', format='png', edgecolor="none")
-                plt.clf()  # clear figure after saving png
-                adder += 0.1
-
-    def doLentils(width, height, n,  listOfPoints, symetricPoints, shiftX=False, shiftY=False, changeSize=0,
-                  pointSize=0, addPoints=False,removePoints=False, nrOfSets=0):
-
-        f = plt.figure(figsize=(100*pixel/25.4, 100*pixel/25.4), dpi=100)  # muj monitor
-
-        # pouze pomucka pro ziskani vzdy celeho platna pro pripad ze by data byly vygenerovany jen u osy - platno by se podle toho zmensilo
-        plt.plot(0, 0, marker="o", markersize=10, markeredgecolor="white", markerfacecolor="white")
-        plt.plot(width, height, marker="o", markersize=10, markeredgecolor="white", markerfacecolor="white")
-
-        ax = plt.gca()
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-        ax.axis('off')
-
-        print("Plotting points...")
-        for pt in listOfPoints:
-            plt.plot(pt.X, pt.Y, marker="o", markersize=pointSize, markeredgecolor="black", markerfacecolor="black")
-            # i = int(pt.X)
-            # j = int(pt.Y)
-            # plt.text(pt.X, pt.Y + 0.05, "({}, {})".format(i, j))
-
-
-        print("-- Plotting symetric Points...")
-        for pt in symetricPoints:
-
-            plt.plot(pt.X, pt.Y, marker="o", markersize=pointSize, markeredgecolor="black", markerfacecolor="black")
-
-
-        print("-- Plotting symetric Points DONE...")
-
-        # plt.savefig(fname="A4_300_5.pdf", orientation='landscape',format='pdf', edgecolor="none")
-        name = "img/100px/set" +str(nrOfSets) +" " + str(n) + "x10px_100px"+".png"
-        plt.savefig(fname=name, orientation='landscape', format='png', edgecolor="none")
-        plt.clf()  # clear figure after saving png
-
-        if shiftX:
-            # posunuti puvodnich bodu
-            shifter = 0.1
-            for i in range(4):
-                # pouze pomucka pro ziskani vzdy celeho platna pro pripad ze by data byly vygenerovany jen u osy - platno by se podle toho zmensilo
-                plt.plot(0, 0, marker="o", markersize=10, markeredgecolor="white", markerfacecolor="white")
-                plt.plot(width, height, marker="o", markersize=10, markeredgecolor="white", markerfacecolor="white")
-
-                ax = plt.gca()
-                ax.get_xaxis().set_visible(False)
-                ax.get_yaxis().set_visible(False)
-                ax.axis('off')
-
-
-                print("___ Shifting symetric points in X axe")
-                shiftPts = DataGenerator.shiftX(listOfPoints, width=width, maxShift=0.2, shiftPercentage=shifter)
-                print("___ Shifting symetric points in X axe Done")
-
-                for pt in symetricPoints :
-                    plt.plot(pt.X, pt.Y, marker="o", markersize=pointSize, markeredgecolor="black", markerfacecolor="black")
-
-                for pt in shiftPts:
-                    plt.plot(pt.X, pt.Y, marker="o", markersize=pointSize, markeredgecolor="black", markerfacecolor="black")
-                for pt in listOfPoints:
-                    plt.plot(pt.X, pt.Y, marker="o", markersize=pointSize, markeredgecolor="black", markerfacecolor="black")
-
-                name = "img/100px/set" +str(nrOfSets) + " shiftX=" + str(shifter)  + ".png"
-                plt.savefig(fname=name, orientation='landscape', format='png', edgecolor="none")
-                plt.clf()  # clear figure after saving png
-                shifter += 0.1
-
-        if removePoints:
-            remover = 0.1
-
-            for i in range(4):
-                counter = len(listOfPoints)
-                # pouze pomucka pro ziskani vzdy celeho platna pro pripad ze by data byly vygenerovany jen u osy - platno by se podle toho zmensilo
-                plt.plot(0, 0, marker="o", markersize=10, markeredgecolor="white", markerfacecolor="white")
-                plt.plot(width, height, marker="o", markersize=10, markeredgecolor="white", markerfacecolor="white")
-
-                ax = plt.gca()
-                ax.get_xaxis().set_visible(False)
-                ax.get_yaxis().set_visible(False)
-                ax.axis('off')
-
-                for pt in symetricPoints :
-                    plt.plot(pt.X, pt.Y, marker="o", markersize=pointSize, markeredgecolor="black", markerfacecolor="black")
-
-                rem_points = int(counter * remover)
-                # delitel = counter / rem_points
-                count = 0
-                print("@ Removing points " + str(remover))
-                for pt in listOfPoints:
-                    if counter <= rem_points:
-                        count += 1
-                    else:
-                        plt.plot(pt.X, pt.Y, marker="o", markersize=pointSize, markeredgecolor="black", markerfacecolor="black")
-                    counter -= 1
-
-                print("   Removed:" + str(count) + " points ")
-
-                name = "img/100px/set" +str(nrOfSets) + " removed=" + str(remover) +".png"
-                plt.savefig(fname=name, orientation='landscape', format='png', edgecolor="none")
-                plt.clf()  # clear figure after saving png
-                remover += 0.1
-
-        if addPoints:
-            adder = 0.1
-            counter = len(listOfPoints)
-            for i in range(4):
-                add_points = int(counter * adder)
-                addedPoints = DataGenerator.addRandomPoints(canvasWidth=width, canvasHeight=height, n=add_points, point_list=listOfPoints)
-
-                # pouze pomucka pro ziskani vzdy celeho platna pro pripad ze by data byly vygenerovany jen u osy - platno by se podle toho zmensilo
-                plt.plot(0, 0, marker="o", markersize=10, markeredgecolor="white", markerfacecolor="white")
-                plt.plot(width, height, marker="o", markersize=10, markeredgecolor="white", markerfacecolor="white")
-
-                ax = plt.gca()
-                ax.get_xaxis().set_visible(False)
-                ax.get_yaxis().set_visible(False)
-                ax.axis('off')
-
-                for pt in symetricPoints:
-                    plt.plot(pt.X, pt.Y, marker="o", markersize=pointSize, markeredgecolor="black",
-                             markerfacecolor="black")
-
-                for pt in addedPoints:
-                    plt.plot(pt.X, pt.Y, marker="o", markersize=pointSize, markeredgecolor="black",
-                             markerfacecolor="black")
-
-
-                name = "img/100px/set" + str(nrOfSets) + " added=" + str(adder) + ".png"
-                plt.savefig(fname=name, orientation='landscape', format='png', edgecolor="none")
-                plt.clf()  # clear figure after saving png
-                adder += 0.1
-
-
-class Point:
-    def __init__(self, x, y):
-        self.X = x
-        self.Y = y
-        # self.Z = 0
-
-    def Equals(self, obj):
-        other = obj if isinstance(obj, Point) else None
-
-        return self.X == other.X and self.Y == other.Y
-        # and self.Z == other.Z
+    def getStringForExport(pointsList):
+        stringToExport = str(len(pointsList)) + "\n"
+        for point in pointsList:
+            stringToExport += str(point.X) + ", " + str(point.Y) + "\n"
+        return stringToExport
 
 
 if __name__ == "__main__":
 
     pixel = 0.27
-    width = 100 * pixel   # 100px 1px= 0.27mm
-    height = 100 * pixel    # 100px 1px= 0.27
+    width = 200 * pixel
+    height = 200 * pixel
     shiftedList = []
 
-    nrOfPoints = 20
+    nrOfPoints = 80
     nrOfChangedSizePoints = 0
-    sizeOfPoints = 10 * pixel   # chci vel 10px a vim, ze pixel = 0.311 mm
-
-    originalCanvasFactory = PointFactory.PointFactory(0, 0, width/2, height, nrOfPoints)
-    originalCanvasFactory.generateRandomPointsWithNoOverlap()
-    symmetricCanvasFactory = originalCanvasFactory.getSymmetricHalf(originalCanvasFactory)
+    sizeOfPoints = 10 * pixel
 
     listOfPoints = []
-    symetricPoints = []
-    counter = 1
+    symmetricPoints = []
+    setCount = 1
 
-    for c in range(counter):
+    for setNum in range(setCount):
 
-        plotterOriginal = PicFactory.PicFactory(width, height, pixel, "img/100px/original.png")
-        plotterOriginal.drawPoints(originalCanvasFactory.getPoints() + symmetricCanvasFactory.getPoints())
+        # files
+        picSuffix = ".png"
+        fileSuffix = ".txt"
 
-        plotterShiftedX = PicFactory.PicFactory(width, height, pixel, "img/100px/shiftedX.png")
-        plotterShiftedX.drawPoints(originalCanvasFactory.getShiftedPointsList(width * 0.4, 0.3) + symmetricCanvasFactory.getPoints())
+        # rect canvas with original points set
+        originalCanvasFactoryR = PointFactory.PointFactory(0, 0, width / 2, height, nrOfPoints, sizeOfPoints)
+        originalCanvasFactoryR.generateRandomPointsWithNoOverlap()
+        symmetricCanvasFactoryR = originalCanvasFactoryR.getSymmetricHalf(originalCanvasFactoryR)
 
-        listOfPoints = DataGenerator.generateRandomPoints(canvasWidth=width, canvasHeight=height, n=nrOfPoints)
-        symetricPoints = DataGenerator.generateSymetricPoints(listOfPoints, width=width)
+        # circ canvas with original points set
+        originalCanvasFactoryC = PointFactory.PointFactory(0, 0, width / 2, height, nrOfPoints, sizeOfPoints)
+        originalCanvasFactoryC.generateRandomPointsWithNoOverlapOnCircle()
+        symmetricCanvasFactoryC = originalCanvasFactoryC.getSymmetricHalf(originalCanvasFactoryC)
 
-        #DataGenerator.startSymetricPoints(width=width, height=height, n=nrOfPoints, listOfPoints=listOfPoints, symetricPoints=symetricPoints, shiftX=True, shiftY=False, changeSize=nrOfChangedSizePoints,pointSize=sizeOfPoints, addPoints=True, removePoints=True, nrOfSets=c)
-        DataGenerator.startSymetricPoints(width=width, height=height, n=nrOfPoints, listOfPoints=originalCanvasFactory.getPoints(),
-                                          symetricPoints=symmetricCanvasFactory.getPoints(), shiftX=True, shiftY=False,
-                                          changeSize=nrOfChangedSizePoints, pointSize=sizeOfPoints, addPoints=True,
-                                          removePoints=True, nrOfSets=c)
+        # rect original plotter
+        plotterOriginal = PicFactory.PicFactory(width, height, pixel, "img/100px/set" + str(setNum) + "_original.png")
+
+        # original points (rectangular canvas)*************************************************************************
+        pointList = originalCanvasFactoryR.getPoints() + symmetricCanvasFactoryR.getPoints()
+        plotterOriginal.drawPoints(pointList)
+        with open("img/100px/set" + " original rect" + fileSuffix, 'w') as f:
+            f.write(DataGenerator.getStringForExport(pointList))
+
+        # circ original plotter
+        plotterOriginalC = PicFactory.PicFactory(width, height, pixel, "img/100px/set" + str(setNum) + "_originalCircle.png")
+        
+        # original points (circular canvas)****************************************************************************
+        pointList = originalCanvasFactoryC.getPoints() + symmetricCanvasFactoryC.getPoints()
+        plotterOriginalC.drawPoints(pointList)
+        with open("img/100px/set" + " original circ" + fileSuffix, 'w') as f:
+            f.write(DataGenerator.getStringForExport(pointList))
+
+        # polygon plotting
+        polygonCanvasFactory = PointFactory.PointFactory(0, 0, width / 2, height, nrOfPoints, sizeOfPoints)
+        polygonCanvasFactory.generateRandomPointsForPolygon()
+        symmetricPolygonCanvasFactory = polygonCanvasFactory.getSymmetricHalf(polygonCanvasFactory)
+        polygonPlotter = PicFactory.PicFactory(width, height, pixel, "img/100px/set" + str(setNum) + "_polygon.png")
+        polygonPlotter.drawSymmetricPolygon(polygonCanvasFactory.getPoints(), symmetricPolygonCanvasFactory.getPoints())
+
+        for index in range(1):
+
+            # describe how many points from original dataset will be changed
+            deformationPercentage = (index + 1) * 0.1
+
+            # point shift in XY (rectangular canvas)*******************************************************************
+            fileName = "img/100px/set" + str(setNum) + " shiftXY=" + str(deformationPercentage)
+            modifiedPointList = originalCanvasFactoryR.getShiftedXYPointsList(originalCanvasFactoryR.getPoints(),
+                                                                              maxShift=width * 0.4,
+                                                                              shiftPercentage=deformationPercentage) + symmetricCanvasFactoryR.getPoints()
+            plotterShiftedXY = PicFactory.PicFactory(width=width, height=height, pixelSize=pixel,
+                                                     fileName=fileName + picSuffix)
+            plotterShiftedXY.drawPoints(modifiedPointList)
+            with open(fileName + fileSuffix, 'w') as f:
+                f.write(DataGenerator.getStringForExport(modifiedPointList))
+
+            # point shift in XY (circle canvas)************************************************************************
+            fileName = "img/100px/setC" + str(setNum) + " shiftXYCircle=" + str(deformationPercentage)
+            modifiedPointList = originalCanvasFactoryC.getShiftedXYPointsList(originalCanvasFactoryC.getPoints(),
+                                                                              maxShift=width * 0.4,
+                                                                              shiftPercentage=deformationPercentage) + symmetricCanvasFactoryC.getPoints()
+            plotterShiftedXYC = PicFactory.PicFactory(width=width, height=height, pixelSize=pixel,
+                                                      fileName=fileName + picSuffix)
+            plotterShiftedXYC.drawPoints(modifiedPointList)
+            with open(fileName + fileSuffix, 'w') as f:
+                f.write(DataGenerator.getStringForExport(modifiedPointList))
+
+            # add points / no shift (rectangular canvas)***************************************************************
+            fileName = "img/100px/set" + str(setNum) + " add=" + str(deformationPercentage)
+            modifiedPointList = originalCanvasFactoryR.addRandomPointsWithNoOverlap(originalCanvasFactoryR.getPoints(),
+                                                                                    deformationPercentage) + symmetricCanvasFactoryR.getPoints()
+            plotterAdd = PicFactory.PicFactory(width=width, height=height, pixelSize=pixel,
+                                               fileName=fileName + picSuffix)
+            plotterAdd.drawPoints(modifiedPointList)
+            with open(fileName + fileSuffix, 'w') as f:
+                f.write(DataGenerator.getStringForExport(modifiedPointList))
+
+            # add points / no shift (circle canvas)********************************************************************
+            fileName = "img/100px/setC" + str(setNum) + " addCircle=" + str(deformationPercentage)
+            modifiedPointList = originalCanvasFactoryC.addRandomPointsWithNoOverlap(originalCanvasFactoryC.getPoints(),
+                                                                                    deformationPercentage) + symmetricCanvasFactoryC.getPoints()
+            plotterAddC = PicFactory.PicFactory(width=width, height=height, pixelSize=pixel,
+                                                fileName=fileName + picSuffix)
+            plotterAddC.drawPoints(modifiedPointList)
+            with open(fileName + fileSuffix, 'w') as f:
+                f.write(DataGenerator.getStringForExport(modifiedPointList))
+
+            # add points / shift (rectangular canvas)******************************************************************
+            fileName = "img/100px/set" + str(setNum) + " add + shift XY=" + str(deformationPercentage)
+            modifiedPointList = originalCanvasFactoryR.addRandomPointsWithNoOverlap(
+                originalCanvasFactoryR.getShiftedXYPointsList(originalCanvasFactoryR.getPoints(), maxShift=width * 0.4,
+                                                              shiftPercentage=deformationPercentage),
+                deformationPercentage) + symmetricCanvasFactoryR.getPoints()
+            plotterAdd = PicFactory.PicFactory(width=width, height=height, pixelSize=pixel,
+                                               fileName=fileName + picSuffix)
+            plotterAdd.drawPoints(modifiedPointList)
+            with open(fileName + fileSuffix, 'w') as f:
+                f.write(DataGenerator.getStringForExport(modifiedPointList))
+
+            # add points / shift (circle canvas)***********************************************************************
+            fileName = "img/100px/setC" + str(setNum) + " addCircle + shift XY=" + str(deformationPercentage)
+            modifiedPointList = originalCanvasFactoryC.addRandomPointsWithNoOverlap(
+                originalCanvasFactoryC.getShiftedXYPointsList(originalCanvasFactoryC.getPoints(), maxShift=width * 0.4,
+                                                              shiftPercentage=deformationPercentage),
+                deformationPercentage) + symmetricCanvasFactoryC.getPoints()
+            plotterAddC = PicFactory.PicFactory(width=width, height=height, pixelSize=pixel,
+                                                fileName=fileName + picSuffix)
+            plotterAddC.drawPoints(modifiedPointList)
+            with open(fileName + fileSuffix, 'w') as f:
+                f.write(DataGenerator.getStringForExport(modifiedPointList))
+
+            # remove points (rectangular canvas)***********************************************************************
+            fileName = "img/100px/set" + str(setNum) + " remove=" + str(deformationPercentage)
+            modifiedPointList = originalCanvasFactoryR.removePoints(originalCanvasFactoryR.getPoints(),
+                                                                    deformationPercentage) + symmetricCanvasFactoryR.getPoints()
+            plotterRemove = PicFactory.PicFactory(width=width, height=height, pixelSize=pixel,
+                                                  fileName=fileName + picSuffix)
+            plotterRemove.drawPoints(modifiedPointList)
+            with open(fileName + fileSuffix, 'w') as f:
+                f.write(DataGenerator.getStringForExport(modifiedPointList))
+
+            # remove points (circle canvas)****************************************************************************
+            fileName = "img/100px/setC" + str(setNum) + " removeCircle=" + str(deformationPercentage)
+            modifiedPointList = originalCanvasFactoryC.removePoints(originalCanvasFactoryC.getPoints(),
+                                                                    deformationPercentage) + symmetricCanvasFactoryC.getPoints()
+            plotterRemoveC = PicFactory.PicFactory(width=width, height=height, pixelSize=pixel,
+                                                   fileName=fileName + picSuffix)
+            plotterRemoveC.drawPoints(modifiedPointList)
+            with open(fileName + fileSuffix, 'w') as f:
+                f.write(DataGenerator.getStringForExport(modifiedPointList))

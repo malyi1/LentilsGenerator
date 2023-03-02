@@ -1,11 +1,17 @@
 import math
 
+from shapely.geometry import Point
 
-class Point:
-    def __init__(self, x, y):
+
+class PicPoint:
+    """
+        custom point class
+    """
+
+    def __init__(self, x, y, size):
         self.X = x
         self.Y = y
-        self.radius = Point.getFixRadius()
+        self.radius = size / 2
 
     def equals(self, point):
         return self.X == point.X and self.Y == point.Y
@@ -14,28 +20,35 @@ class Point:
         return self.radius
 
     def getDiameter(self):
-        return self.radius*2
+        return self.radius * 2
 
     def shiftX(self, shift):
         self.X = shift + self.X
 
+    def shiftY(self, shift):
+        self.Y = shift + self.Y
+
     def setX(self, newX):
         self.X = newX
 
+    def setY(self, newY):
+        self.Y = newY
+
     def isOverlapping(self, pointsInCanvas):
         for pointInCanvas in pointsInCanvas:
-            if Point.isClose(self, pointInCanvas):
+            if PicPoint.isClose(self, pointInCanvas):
                 return True
         return False
 
-    def isOnCanvas(self, canvas0X, canvas0Y, canvasWidth, canvasHeight):
-        if (canvas0X <= self.X <= canvas0X + canvasWidth) and (canvas0Y <= self.Y <= canvas0Y + canvasHeight):
+    def isOnCanvas(self, canvas):
+        if canvas.contains(Point(self.X, self.Y)):
             return True
         return False
 
-    @staticmethod
-    def getFixRadius():
-        return (10 * 0.27)/2
+    def isInCircle(self, circleS):
+        if circleS.buffer(circleS.x).contains(Point(self.X, self.Y)):
+            return True
+        return False
 
     @staticmethod
     def getCentresDistance(point1, point2):
@@ -44,4 +57,4 @@ class Point:
     # checks if points are overlapping themselves
     @staticmethod
     def isClose(point1, point2):
-        return Point.getCentresDistance(point1, point2) <= point1.getDiameter()*0.75
+        return PicPoint.getCentresDistance(point1, point2) <= point1.getDiameter() / 1.65  # /2 looks like intersection
