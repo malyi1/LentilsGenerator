@@ -6,12 +6,11 @@ class PicFactory:
         class contains info & settings & methods about plotting
     """
 
-    def __init__(self, width, height, pixelSize, fileName):
+    def __init__(self, width, height, fileName):
         self.__width = width
         self.__height = height
-        self.__pixelSize = pixelSize
         self.__fileName = fileName
-        self.__figure = plt.figure(figsize=(2, 2))
+        self.__figure = plt.figure(figsize=(2, 2), dpi=100)
 
         # pouze pomucka pro ziskani vzdy celeho platna pro pripad ze by data byly vygenerovany jen u osy -
         # platno by se podle toho zmensilo

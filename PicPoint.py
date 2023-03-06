@@ -57,4 +57,4 @@ class PicPoint:
     # checks if points are overlapping themselves
     @staticmethod
     def isClose(point1, point2):
-        return PicPoint.getCentresDistance(point1, point2) <= point1.getDiameter() / 1.65  # /2 looks like intersection
+        return PicPoint.getCentresDistance(point1, point2) <= point1.getDiameter() / 1.25  # /2 looks like intersection
