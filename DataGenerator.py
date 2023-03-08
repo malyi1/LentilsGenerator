@@ -288,20 +288,19 @@ class DataGenerator:
                 with open(fileName + fileSuffix, 'w') as f:
                     f.write(DataGenerator.getStringForExport(modifiedPointList))
 
-
 if __name__ == "__main__":
+    # this width and height specifies the grid, where points will be generated
     width = 200
     height = 200
 
-    nrOfPoints = 80
-    sizeOfPoints = 10 * 0.2
-    # ..not used now, but it is a option of deformation
-    nrOfChangedSizePoints = 0
+
+    nrOfPoints = 80             # how many point should be generated on left half
+    sizeOfPoints = 10 * 0.2     # how big should be the point
+    setCount = 30               # how many datasets should be generated
 
     listOfPoints = []
     symmetricPoints = []
     shiftedList = []
-    setCount = 30  # how many datasets should be generated
 
     # for testing only
     # DataGenerator.generateLentilsFromOriginal(width, height, nrOfPoints, sizeOfPoints, setCount)
@@ -314,3 +313,24 @@ if __name__ == "__main__":
     # symmetricPolygonCanvasFactory = polygonCanvasFactory.getSymmetricHalf(polygonCanvasFactory)
     # polygonPlotter = PicFactory.PicFactory(width, height, "img/set" + str(setNum) + "_polygon.png")
     # polygonPlotter.drawSymmetricPolygon(polygonCanvasFactory.getPoints(), symmetricPolygonCanvasFactory.getPoints())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

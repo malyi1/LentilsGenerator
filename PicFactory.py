@@ -17,7 +17,7 @@ class PicFactory:
         plt.plot(0, 0, marker="o", markersize=1, markeredgecolor="black", markerfacecolor="white")
         plt.plot(width, height, marker="o", markersize=1, markeredgecolor="black", markerfacecolor="white")
 
-        # settings
+        # settings  - we want canvas without axes and grid
         plt.tight_layout(pad=0.0)
         plt.margins(x=0.0, y=0.0)
         ax = plt.gca()
@@ -25,6 +25,7 @@ class PicFactory:
         ax.get_yaxis().set_visible(False)
         ax.axis('off')
 
+    # draw the points from given pointlist on the grid
     def drawPoints(self, pointsList):
         for point in pointsList:
             plt.plot(point.X, point.Y, marker="o", markersize=point.getDiameter(), markeredgecolor="black",
@@ -34,6 +35,8 @@ class PicFactory:
         plt.savefig(fname=self.__fileName, orientation='landscape', format='png', edgecolor="none")
         plt.clf()  # clear figure after saving png
 
+    # draws polygon from given pointlist on both sides
+    #  -- method is prototype for PART 2 of this project
     def drawSymmetricPolygon(self, pointsList, symmetricPointsList):
         x = []
         y = []
