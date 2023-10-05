@@ -1,0 +1,5 @@
+Designer
+   Run designer
+    /usr/local/bin/pyqt6-tools designer
+  Convert .ui to .py
+    pyuic6 -x your_file.ui -o output_file.py

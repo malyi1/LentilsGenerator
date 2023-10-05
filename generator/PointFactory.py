@@ -1,7 +1,7 @@
 import numpy as np
 import copy
 from shapely.geometry import Point, Polygon
-import PicPoint as pt
+import generator.PicPoint as pt
 
 
 class PointFactory:
@@ -75,7 +75,7 @@ class PointFactory:
             while not positionIsCorrect:
                 potentialPoint = self.__getRandomPointOnCanvas()
                 positionIsCorrect = \
-                    not potentialPoint.isOverlapping(self.__pointList) and potentialPoint.isOnCanvas(self.__canvas)  \
+                    not potentialPoint.isOverlapping(self.__pointList) and potentialPoint.isOnCanvas(self.__canvasWidth, self.__canvasHeight)  \
                     and potentialPoint.isInCircle(Point(self.__canvasWidth, self.__canvasHeight/2))
             self.__pointList.append(potentialPoint)
         print("Generating random points done...")
@@ -91,7 +91,7 @@ class PointFactory:
                 potentialPoint = self.__getRandomPointOnCanvas()
                 positionIsCorrect = \
                     not potentialPoint.isOverlapping(pointList) \
-                    and potentialPoint.isOnCanvas(self.__canvas)
+                    and potentialPoint.isOnCanvas(self.__canvasWidth, self.__canvasHeight)
             pointList.append(potentialPoint)
         print("adding random points done...")
         return pointList
@@ -106,7 +106,7 @@ class PointFactory:
             while not positionIsCorrect:
                 potentialPoint = self.__getRandomPointOnCanvas()
                 positionIsCorrect = \
-                    not potentialPoint.isOverlapping(pointList) and potentialPoint.isOnCanvas(self.__canvas)  \
+                    not potentialPoint.isOverlapping(pointList) and potentialPoint.isOnCanvas(self.__canvasWidth, self.__canvasHeight)  \
                     and potentialPoint.isInCircle(Point(self.__canvasWidth, self.__canvasHeight/2))
             pointList.append(potentialPoint)
         print("adding random points done...")
@@ -131,7 +131,7 @@ class PointFactory:
                 checkPoint.setX(pointToShift.X + randomOffset)
                 positionIsCorrect = \
                     not checkPoint.isOverlapping(pointList) \
-                    and checkPoint.isOnCanvas(self.__canvas)
+                    and checkPoint.isOnCanvas(self.__canvasWidth, self.__canvasHeight)
             pointToShift.X = checkPoint.X
         print("shifting X of random points done...")
         return pointList
@@ -154,7 +154,7 @@ class PointFactory:
                 checkPoint.setY(pointToShift.Y + randomOffsetY)
                 positionIsCorrect = \
                     not checkPoint.isOverlapping(pointList) \
-                    and checkPoint.isOnCanvas(self.__canvas)
+                    and checkPoint.isOnCanvas(self.__canvasWidth, self.__canvasHeight)
             pointToShift.X = checkPoint.X
             pointToShift.Y = checkPoint.Y
         print("shifting X and Y of random points done...")
@@ -177,7 +177,7 @@ class PointFactory:
                 checkPoint.setX(pointToShift.X + randomOffsetX)
                 checkPoint.setY(pointToShift.Y + randomOffsetY)
                 positionIsCorrect = \
-                    not checkPoint.isOverlapping(pointList) and checkPoint.isOnCanvas(self.__canvas) \
+                    not checkPoint.isOverlapping(pointList) and checkPoint.isOnCanvas(self.__canvasWidth, self.__canvasHeight) \
                     and checkPoint.isInCircle(Point(self.__canvasWidth, self.__canvasHeight/2))
             pointToShift.X = checkPoint.X
             pointToShift.Y = checkPoint.Y
