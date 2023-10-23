@@ -29,7 +29,7 @@ class DataGenerator:
 
         return [originalCanvasFactoryR, originalCanvasFactoryC, symmetricCanvasFactoryR, symmetricCanvasFactoryC]
 
-    def generateLentils(width, height, nrOfPoints, sizeOfPoints, setCount, canvasWidth, canvasHeight, backgroundColor, foregroundColor, pointColor):
+    def generateLentils(width, height, nrOfPoints, sizeOfPoints, setCount, sigma, canvasWidth, canvasHeight, maxShift, backgroundColor, foregroundColor, pointColor):
         for setNum in range(setCount):
             # files
             picSuffix = ".png"
@@ -58,12 +58,14 @@ class DataGenerator:
                 # point shift in XY (circle canvas)************************************************************************
                 fileName = "img/" + str(int(round((1-deformationPercentage)*100,0))) + "set" + str(setNum)
                 modifiedPointList = originalCanvasFactoryC.getShiftedXYPointsListOnCircle(originalCanvasFactoryC.getPoints(),
-                                                                                  maxShift= width * 0.5, # sizeOfPoints * 2, # width * 0.1, # width * 0.4
+                                                                                  maxShift= maxShift, # width * 0.5, # sizeOfPoints * 2, # width * 0.1, # width * 0.4
                                                                                   shiftPercentage=deformationPercentage) + symmetricCanvasFactoryC.getPoints()
                 plotterShiftedXYC = PicFactory.PicFactory(
                     width=width,
                     height=height,
                     fileName=fileName + picSuffix,
+                    pointDiameter=sizeOfPoints,
+                    sigma=sigma,
                     canvasWidth=canvasWidth,
                     canvasHeight=canvasHeight,
                     backgroundColor=backgroundColor,

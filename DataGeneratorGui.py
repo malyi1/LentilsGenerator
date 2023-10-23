@@ -9,7 +9,15 @@ class DataGeneratorGui():
         self.MainWindow = QtWidgets.QMainWindow()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self.MainWindow)
+
+        self.ui.changeBackgroundColorButton.setStyleSheet("background-color:{};".format(self.ui.canvasBackgroundText.text()))
+        self.ui.changeCircleColorButton.setStyleSheet("background-color:{};".format(self.ui.circleColorText.text()))
+        self.ui.changePointColorButton.setStyleSheet("background-color:{};".format(self.ui.pointColorText.text()))
+
         self.ui.generatePushButton.clicked.connect(lambda: self.start_foreground_work(self.run_generate, self.beforeRunGenerate, self.afterRunGenerate))
+        self.ui.changeBackgroundColorButton.clicked.connect(lambda: self.setColor(self.ui.canvasBackgroundText, self.ui.changeBackgroundColorButton))
+        self.ui.changeCircleColorButton.clicked.connect(lambda: self.setColor(self.ui.circleColorText, self.ui.changeCircleColorButton))
+        self.ui.changePointColorButton.clicked.connect(lambda: self.setColor(self.ui.pointColorText, self.ui.changePointColorButton))
         self.MainWindow.show()
 
     def run_generate(self):
@@ -19,11 +27,13 @@ class DataGeneratorGui():
             int(self.ui.noOfPointsSpinBox.value() / 2),
             self.ui.sizeOfPointsSpinBox.value(),
             self.ui.setCountSpinBox.value(),
+            self.ui.sigmaDoubleSpinBox.value(),
             self.ui.canvasWidthSpinBox.value(),
             self.ui.canvasHeightSpinBox.value(),
+            self.ui.maxShiftSpinBox.value(),
             self.ui.canvasBackgroundText.text(),
             self.ui.circleColorText.text(),
-            self.ui.pointColorText.text()
+            self.ui.pointColorText.text(),
         )
 
     def beforeRunGenerate(self):
@@ -44,6 +54,14 @@ class DataGeneratorGui():
         self.worker.finished_signal.connect(afterUpdateUi)
         self.worker.start()
 
+    @staticmethod
+    def setColor(textEdit, button):
+        dialog = QtWidgets.QColorDialog()
+        dialog.setOption(QtWidgets.QColorDialog.ColorDialogOption.ShowAlphaChannel, on=True)
+        newColor = QtWidgets.QColorDialog.getColor().name()
+        textEdit.setText(newColor)
+        button.setStyleSheet("background-color:{};".format(newColor))
+        dialog.close()
 
 if __name__ == "__main__":
     import sys

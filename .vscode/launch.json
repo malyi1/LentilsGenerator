@@ -5,6 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Run App",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/DataGeneratorGui.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
             "name": "Convert GUI",
             "type": "python",
             "request": "launch",
@@ -12,13 +20,5 @@
             "console": "integratedTerminal",
             "justMyCode": true
         },
-        {
-            "name": "Run App",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/DataGeneratorGui.py",
-            "console": "integratedTerminal",
-            "justMyCode": true
-        }
     ]
 }
